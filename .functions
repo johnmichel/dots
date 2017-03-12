@@ -1,0 +1,297 @@
+#!/usr/bin/env bash
+
+# Create a new directory and enter it
+mkd() {
+	mkdir -p "$@" && cd "$@";
+}
+
+# Change working directory to the top-most Finder window location
+cdf() {
+	cd "$(osascript -e 'tell app "Finder" to POSIX path of (insertion location as alias)')";
+}
+
+# Shorten some git commands that take arguments
+
+# arg1 Filename
+# arg2 Commit
+gblame() {
+	g --no-pager blame -w -M -C $2 -- $1 | subl
+}
+
+# arg1 Filename
+# arg2 Commit
+gpraise() {
+	g --no-pager praise -w -M -C $2 -- $1 | subl
+}
+
+# For projects which use JIRA, this will show all relevant tickets between 2 releases.
+# arg1 Ticket prefix. For example Cyanogenmod would use CYAN
+# arg2 Revision to start searching from. Only includes commits AFTER this one.
+# arg3 Revision to stop searching at. This commit is included in the search.
+gissues() {
+	g log "$2..$3" --format='%s %b' --grep=$1 --regexp-ignore-case | # Get the entire git log for any commit that has a JIRA ticket number
+	sed "s/\($1-[0-9]\{1,\}\)/\1\n/I" | # Split multiple ticket numbers on 1 line to be on their own lines. Needed for 'grep -o' to work
+	grep -i -o -e "$1-[0-9]\{1,\}" | # Filter out anything that's not a JIRA ticket
+	tr '[:lower:]' '[:upper:]' | # Convert commits using lowercase Ticket Prefixes to uppercase
+	# It would be more efficient to call 'uniq' first, but trying that breaks both sorting and removing uniques so it must be in the order below it seems.
+	sort | # Sort the tickets to make them organized
+	uniq # Multiple commits can refer to the same ticket, so remove duplicates
+}
+
+# Update Chromium
+# https://gist.github.com/SlexAxton/5190467
+updatechromium() {
+	Platform='unknown'
+	platform='unknown'
+	unamestr=`uname`
+	case "$unamestr" in
+		('Darwin') Platform="Mac"
+			platform="mac"  ;;
+		('Linux') Platform="Linux"
+			platform="linux"  ;;
+		(*) if [[ $# = 2 ]]
+			then
+				Platform=$(echo "$2" | sed -e "s/\([^\.]\+\)/\u\1/g")
+				platform=$(echo "$2" | tr '[A-Z]' '[a-z]')
+			elif [[ $# = 1 ]]
+			then
+				Platform=$(echo "$1" | sed -e "s/\([^\.]\+\)/\u\1/g")
+				platform=$(echo "$1" | tr '[A-Z]' '[a-z]')
+			fi ;;
+	esac
+	echo "$unamestr :: $Platform : $platform"
+	echo
+	BASEDIR=https://commondatastorage.googleapis.com/chromium-browser-snapshots/$Platform
+	cd ~/$1
+	echo "Downloading number of latest revision"
+	REVNUM=`curl -# https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Mac%2FLAST_CHANGE?alt=media`
+	echo "Found latest revision number $REVNUM, starting download"
+	curl $BASEDIR/$REVNUM/chrome-$platform.zip > $REVNUM.zip
+	echo "Unzipping..."
+	unzip $REVNUM.zip 2>&1 > /dev/null
+	echo "Done."
+	rm -rf /Applications/Chromium.app
+	mv chrome-mac/Chromium.app /Applications/Chromium.app
+	rm -rf chrome-mac
+	rm -rf $REVNUM.zip
+	echo "Moving to Applications directory..."
+	echo "Done, update successful"
+}
+
+# Shorthand for updatechromium
+uc() {
+    updatechromium
+}
+
+# Force a Google Software Update to run (ideal for Chrome Canary builds)
+# This requires the Google Software Updater to have access for all users
+updategoogle() {
+	/Library/Google/GoogleSoftwareUpdate/GoogleSoftwareUpdate.bundle/Contents/Resources/GoogleSoftwareUpdateAgent.app/Contents/MacOS/GoogleSoftwareUpdateAgent -runMode oneshot -userInitiated YES
+}
+
+# Shorthand for updategoogle
+ug() {
+    updategoogle
+}
+
+# Create a .tar.gz archive, using `zopfli`, `pigz` or `gzip` for compression
+targz() {
+	local tmpFile="${@%/}.tar";
+	tar -cvf "${tmpFile}" --exclude=".DS_Store" "${@}" || return 1;
+
+	size=$(
+		stat -f"%z" "${tmpFile}" 2> /dev/null; # macOS `stat`
+		stat -c"%s" "${tmpFile}" 2> /dev/null;  # GNU `stat`
+	);
+
+	local cmd="";
+	if (( size < 52428800 )) && hash zopfli 2> /dev/null; then
+		# the .tar file is smaller than 50 MB and Zopfli is available; use it
+		cmd="zopfli";
+	else
+		if hash pigz 2> /dev/null; then
+			cmd="pigz";
+		else
+			cmd="gzip";
+		fi;
+	fi;
+
+	echo "Compressing .tar ($((size / 1000)) kB) using \`${cmd}\`…";
+	"${cmd}" -v "${tmpFile}" || return 1;
+	[ -f "${tmpFile}" ] && rm "${tmpFile}";
+
+	zippedSize=$(
+		stat -f"%z" "${tmpFile}.gz" 2> /dev/null; # macOS `stat`
+		stat -c"%s" "${tmpFile}.gz" 2> /dev/null; # GNU `stat`
+	);
+
+	echo "${tmpFile}.gz ($((zippedSize / 1000)) kB) created successfully.";
+}
+
+# Determine size of a file or total size of a directory
+fs() {
+	if du -b /dev/null > /dev/null 2>&1; then
+		local arg=-sbh;
+	else
+		local arg=-sh;
+	fi
+	if [[ -n "$@" ]]; then
+		du $arg -- "$@";
+	else
+		du $arg .[^.]* ./*;
+	fi;
+}
+
+# Use Git’s colored diff when available
+hash git &>/dev/null;
+if [ $? -eq 0 ]; then
+	function diff() {
+		git diff --no-index --color-words "$@";
+	}
+fi;
+
+# Create a data URL from a file
+dataurl() {
+	local mimeType=$(file -b --mime-type "$1");
+	if [[ $mimeType == text/* ]]; then
+		mimeType="${mimeType};charset=utf-8";
+	fi
+	echo "data:${mimeType};base64,$(openssl base64 -in "$1" | tr -d '\n')";
+}
+
+# Create a git.io short URL
+gitio() {
+	if [ -z "${1}" -o -z "${2}" ]; then
+		echo "Usage: \`gitio slug url\`";
+		return 1;
+	fi;
+	curl -i https://git.io/ -F "url=${2}" -F "code=${1}";
+}
+
+# Start a PHP server from a directory, optionally specifying the port
+# (Requires PHP 5.4.0+.)
+phpserver() {
+	local port="${1:-4000}"
+	local ip=$(ipconfig getifaddr en1)
+	sleep 1 && open "http://${ip}:${port}/" &
+	php -S "${ip}:${port}"
+}
+
+# Compare original and gzipped file size
+gzcompare() {
+	local origsize=$(wc -c < "$1");
+	local gzipsize=$(gzip -c "$1" | wc -c);
+	local ratio=$(echo "$gzipsize * 100 / $origsize" | bc -l);
+	printf "orig: %d bytes\n" "$origsize";
+	printf "gzip: %d bytes (%2.2f%%)\n" "$gzipsize" "$ratio";
+}
+
+# All the dig info
+digga() {
+	dig +nocmd "$1" any +multiline +noall +answer
+}
+
+# UTF-8-encode a string of Unicode symbols
+escape() {
+	printf "\\\x%s" $(printf "$@" | xxd -p -c1 -u);
+	# print a newline unless we’re piping the output to another program
+	if [ -t 1 ]; then
+		echo ""; # newline
+	fi;
+}
+
+# Decode \x{ABCD}-style Unicode escape sequences
+unidecode() {
+	perl -e "binmode(STDOUT, ':utf8'); print \"$@\"";
+	# print a newline unless we’re piping the output to another program
+	if [ -t 1 ]; then
+		echo ""; # newline
+	fi;
+}
+
+# Get a character’s Unicode code point
+codepoint() {
+	perl -e "use utf8; print sprintf('U+%04X', ord(\"$@\"))";
+	# print a newline unless we’re piping the output to another program
+	if [ -t 1 ]; then
+		echo ""; # newline
+	fi;
+}
+
+# `a` with no arguments opens the current directory in Atom Editor, otherwise
+# opens the given location
+a() {
+	if [ $# -eq 0 ]; then
+		atom .;
+	else
+		atom "$@";
+	fi;
+}
+
+# `atb` with no arguments opens the current directory in Atom Beta Editor, otherwise
+# opens the given location
+atb() {
+    if [ $# -eq 0 ]; then
+        atom-beta .
+    else
+        atom-beta "$@"
+    fi
+}
+
+# `o` with no arguments opens the current directory, otherwise opens the given
+# location
+o() {
+	if [ $# -eq 0 ]; then
+		open .;
+	else
+		open "$@";
+	fi;
+}
+
+# `tre` is a shorthand for `tree` with hidden files and color enabled, ignoring
+# the `.git` directory, listing directories first. The output gets piped into
+# `less` with options to preserve color and line numbers, unless the output is
+# small enough for one screen.
+tre() {
+	tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX;
+}
+
+# via https://github.com/exogen/dotfiles/blob/730fb8e2b72b2fc3aa3d90b889874bb5195e1d07/.profile
+# Convert seconds since UNIX Epoch to a readable date.
+sec() {
+    date -j -r "$1"
+}
+
+# Convert milliseconds since UNIX Epoch to a readable date.
+ms() {
+    date -j -r "$(($1/1000))"
+}
+
+# Skip DASH manifest for speed purposes. This might actually disable
+# being able to specify things like 'bestaudio' as the requested format,
+# but try anyway.
+# Get the best audio that isn't WebM, because afplay doesn't support it.
+# Use "$*" so that quoting the requested song isn't necessary.
+play() {
+    youtube-dl --default-search=ytsearch: \
+               --youtube-skip-dash-manifest \
+               --output="${TMPDIR:-/tmp/}%(title)s-%(id)s.%(ext)s" \
+               --restrict-filenames \
+               --format="bestaudio[ext!=webm]" \
+               --exec=afplay "$*"
+}
+
+# Get the best audio, convert it to MP3, and save it to the current directory.
+mp3() {
+    youtube-dl --default-search=ytsearch: \
+               --restrict-filenames \
+               --format=bestaudio \
+               --extract-audio \
+               --audio-format=mp3 \
+               --audio-quality=1 "$*"
+}
+
+# fetch the weather forecast
+wttr() {
+    curl -4 http://wttr.in/"$1"
+}
