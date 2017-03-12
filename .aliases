@@ -110,6 +110,9 @@ alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[
 # Show active network interfaces
 alias ifactive="ifconfig | pcregrep -M -o '^[^\t:]+:([^\n]|\n\t)*status: active'"
 
+# List all hardware ports
+alias hwports="networksetup -listallhardwareports"
+
 # Flush Directory Service cache
 # https://www.whatsmydns.net/flush-dns.html#os-x-el-capitan
 alias flush="dscacheutil -flushcache && killall -HUP mDNSResponder"
