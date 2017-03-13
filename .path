@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# via https://git.io/vy6e1
+
+# /usr/local/bin probably already exists in the PATH, but make sure it takes precedent over the OS X defaults
+if [ -d "/usr/local/bin" ]; then
+	# Move /usr/local/bin to the front of the PATH so brew packages take priority over system packages
+	export PATH=$(echo "$PATH" | sed 's|:/usr/local/bin:|:|g')
+	export PATH="/usr/local/bin:$PATH"
+fi
+
+pathLocations=( "$HOME/.node/bin" "$HOME/bin" )
+
+# Only add brew locations to the PATH if brew exists on the system
+if [ -x "/usr/local/bin/brew" ]; then
+	pathLocations+=( "$(brew --prefix gnu-tar)/libexec/gnubin" )
+	pathLocations+=( "$(brew --prefix gnu-sed)/libexec/gnubin" )
+	pathLocations+=( "$(brew --prefix binutils)/libexec/gnubin" )
+	pathLocations+=( "$(brew --prefix coreutils)/libexec/gnubin" )
+fi
+
+if command -v ruby >/dev/null 2>&1; then
+	# Allow gems installed with --user-install to be executed
+	export PATH="$HOME/.gem/ruby/2.0.0/bin:$PATH"
+fi
+
+# Only add to PATH if the location isn't already there and the folder really exists
+for pIdx in "${!pathLocations[@]}"; do
+	if [[ ":$PATH:" != *":${pathLocations[$pIdx]}:"* ]] && [ -d "${pathLocations[$pIdx]}" ]; then
+		export PATH="${pathLocations[$pIdx]}:$PATH"
+	fi
+done
+
+if [ -x "/usr/local/bin/brew" ]; then
+	export MANPATH="$(brew --prefix coreutils)/libexec/gnuman:$MANPATH"
+	export MANPATH="$(brew --prefix gnu-sed)/libexec/gnuman:$MANPATH"
+	# brew's gnu-tar package doesn't have a manpage? Argh!
+fi
