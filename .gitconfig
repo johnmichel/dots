@@ -1,0 +1,165 @@
+[alias]
+	b = branch
+	co = checkout
+	cob = checkout -B
+	# Show the diff between the latest commit and the current state
+	d = !"git diff-index --quiet HEAD -- || clear; git --no-pager diff --patch-with-stat"
+	df = difftool
+	# Remove branches that have already been merged with master
+	# a.k.a. ‘delete merged’
+	dm = "!git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
+	fa = fetch --all
+	fp = fetch --prune
+	# View abbreviated SHA, description, and history graph of the latest 20 commits
+	l = log --pretty=oneline -n 20 --graph --abbrev-commit
+	ls = ls-files
+	# View the current working tree status using the short format
+	s = status -s
+
+	# Show verbose output about branches, remotes, or tags
+	branches = branch -a
+	remotes = remote -v
+	tags = tag -l
+
+	# Searching
+	codesearch = "!f() { git log --all --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --decorate --date=short -S$1; }; f"
+	commitsearch = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short --grep=$1; }; f"
+
+	# Stash current changes, checkout & pull previous branch, switch back to current branch, merge previous branch
+	mergeprevious = !"git stash save && git checkout - && git pull && git checkout - && git merge -"
+	# For positive credit
+	praise = blame
+	# Show everything
+	puke = !git --no-pager log --stat --all --graph
+	reloadtags = !"git tag -l | xargs git tag -d && git fetch"
+	showtracking = branch -vv
+	# Get changes done in the past day
+	standup = !"git log --format=format:'%C(yellow)%d%Creset %s %Cblue(%cr)' --abbrev-commit --since yesterday --author=`git config user.email` --no-merges"
+	# Get changes done in the past week
+	timesheet = !"git log --format=format:'%C(yellow)%d%Creset %s %Cblue(%cr)' --abbrev-commit --since 7days --author=`git config user.email` --no-merges"
+	# Undos
+	uncommit = reset --soft HEAD^
+	unstage = reset HEAD --
+	# Who has the most commits
+	winning = shortlog -s -n --all
+
+	# Destructive operations
+	# saltthearth = "!f() { git reset --hard -q; git clean -dfx; git smash; git yolo; rm -rf .git }; f"
+	# smash = !"git rebase -i HEAD~`git rev-list HEAD --count`"
+	# smash = !"git rebase $(git rev-list --max-parents=0 HEAD | tail -1)"
+	# via https://github.com/DanHerbert/dotfiles-old/blob/fa37918e8a151319dd3c7b0d43637fd53295ba78/.gitconfig#L45
+	yolo = !"git commit -am \"DEAL WITH IT\" && git push -f origin master"
+
+[advice]
+	# Don't give hints when running git status
+	statusHints = false
+
+[apply]
+	# Detect whitespace errors when applying a patch
+	whitespace = fix
+
+[color]
+	ui = auto
+
+[color "branch"]
+	current = yellow reverse
+	local = yellow
+	remote = blue
+
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold
+	old = red bold
+	new = green bold
+
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan
+
+[commit]
+	# https://help.github.com/articles/signing-commits-using-gpg/
+	gpgsign = true
+
+[core]
+	editor = atom-beta -w
+	excludesfile = ~/.gitignore
+
+	# Not a real config, but it should be
+	# via https://github.com/DanHerbert/dotfiles-old/blob/fa37918e8a151319dd3c7b0d43637fd53295ba78/.gitconfig#L9
+	hardcore-mode = true
+
+	# Make `git rebase` safer on OS X
+	# More info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
+	trustctime = false
+
+	# Treat spaces before tabs and all kinds of trailing whitespace as an error.
+	# [default] trailing-space: looks for spaces at the end of a line
+	# [default] space-before-tab: looks for spaces before tabs at the beginning of
+	# a line
+	whitespace = space-before-tab,-indent-with-non-tab,trailing-space
+
+    # Prevent showing files whose names contain non-ASCII symbols as unversioned.
+	# http://michael-kuehnel.de/git/2014/11/21/git-mac-osx-and-german-umlaute.html
+	precomposeunicode = false
+
+[diff]
+    compactionHeuristic = true
+	tool = Kaleidoscope
+	# Detect copies as well as renames
+	renames = copies
+
+[difftool "Kaleidoscope"]
+	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
+
+[difftool]
+	prompt = false
+
+[fetch]
+	# Remove remote branches locally when they're deleted from origin
+	prune = true
+
+[merge]
+	tool = Kaleidoscope
+	# Include summaries of merged commits in newly created merge commit messages
+	log = true
+
+[mergetool]
+	keepBackup = false
+	prompt = false
+
+[mergetool "Kaleidoscope"]
+	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
+	trustExitCode = true
+
+[push]
+	default = simple
+
+[rerere]
+	# "reuse recorded resolution" Tells git to record how conflicts are resolved when in a branch so you don't have to repeatedly resolve the same conflict when merging another branch
+	# See http://git-scm.com/blog/2010/03/08/rerere.html
+	enabled = true
+
+[rebase]
+	stat = true
+
+[tig]
+	# Ensure tig always shows commits from other time zones in your computer's current time zone
+	show-date = local
+
+# URL shorthands
+[url "git@github.com:"]
+	insteadOf = "gh:"
+	pushInsteadOf = "github:"
+	pushInsteadOf = "git://github.com/"
+
+[url "git://github.com/"]
+	insteadOf = "github:"
+
+[url "git@gist.github.com:"]
+	insteadOf = "gst:"
+	pushInsteadOf = "gist:"
+	pushInsteadOf = "git://gist.github.com/"
+
+[url "git://gist.github.com/"]
+	insteadOf = "gist:"
