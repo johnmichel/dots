@@ -43,7 +43,7 @@
 	# Who has the most commits
 	winning = shortlog -s -n --all
 
-	# Destructive operations
+	# Destructive operations - unfinished
 	# saltthearth = "!f() { git reset --hard -q; git clean -dfx; git smash; git yolo; rm -rf .git }; f"
 	# smash = !"git rebase -i HEAD~`git rev-list HEAD --count`"
 	# smash = !"git rebase $(git rev-list --max-parents=0 HEAD | tail -1)"
