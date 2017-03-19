@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+# terminal customizations - http://xta.github.com/HalloweenBash/
+parse_git_branch() {
+    if $(git branch --no-color &>/dev/null); then
+        local branch='';
+        branch=$(git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/')
+        echo "${bold}${blue}${branch}${reset}"
+    fi
+}
+
+# via https://gist.github.com/chrisbraddock/4714691
+git_dirty_stash() {
+    if $(git rev-parse --verify refs/stash &>/dev/null); then
+        echo " 💩 "
+    fi
+    return 0
+}
+
+parse_git_commit() {
+    if $(git rev-parse --short HEAD &>/dev/null); then
+        local sha='';
+        sha=$(git rev-parse --short HEAD 2>/dev/null)
+        echo " ${cyan}@${reset} ${bold}${yellow}${sha}${reset}"
+    fi
+}
+
+tput sgr0; # reset colors
+bold=$(tput bold);
+reset=$(tput sgr0);
+# base16-eighties colors, taken from http://chriskempson.github.io/base16/#eighties
+black=$(tput setaf 236); #done.
+blue=$(tput setaf 68); #done
+cyan=$(tput setaf 80); #done.
+green=$(tput setaf 114); #done.
+orange=$(tput setaf 209); #done.
+purple=$(tput setaf 176); #done
+red=$(tput setaf 210); #done
+violet=$(tput setaf 61);
+white=$(tput setaf 15);
+yellow=$(tput setaf 221); #done.
+
+# Highlight the user name when logged in as root.
+if [[ "${USER}" == "root" ]]; then
+	userStyle="${red}";
+else
+	userStyle="${orange}";
+fi;
+
+export PS1="${orange}\t${reset} \h:\w \$(parse_git_branch)\$(parse_git_commit)\$(git_dirty_stash) \u\n$ "
