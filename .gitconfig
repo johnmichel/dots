@@ -1,5 +1,6 @@
 [alias]
 	b = branch
+	branch-name = rev-parse --abbrev-ref HEAD
 	co = checkout
 	cob = checkout -B
 	# Show the diff between the latest commit and the current state
@@ -15,6 +16,8 @@
 	ls = ls-files
 	# View the current working tree status using the short format
 	s = status -s
+	# Push the current branch and add the upstream tracking branch
+	pr = "!git push -u origin $(git branch-name)"
 
 	# Show verbose output about branches, remotes, or tags
 	branches = branch -a
