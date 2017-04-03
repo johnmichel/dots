@@ -107,7 +107,7 @@
 	precomposeunicode = false
 
 [diff]
-    compactionHeuristic = true
+	indentHeuristic = true
 	tool = Kaleidoscope
 	# Detect copies as well as renames
 	renames = copies
