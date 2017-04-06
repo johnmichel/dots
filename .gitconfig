@@ -150,6 +150,9 @@
 	# Ensure tig always shows commits from other time zones in your computer's current time zone
 	show-date = local
 
+[transfer]
+	fsckobjects = true
+
 # URL shorthands
 [url "git@github.com:"]
 	insteadOf = "gh:"
