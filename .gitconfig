@@ -137,6 +137,7 @@
 
 [push]
 	default = simple
+	followTags = true
 
 [rerere]
 	# "reuse recorded resolution" Tells git to record how conflicts are resolved when in a branch so you don't have to repeatedly resolve the same conflict when merging another branch
