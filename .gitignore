@@ -14,7 +14,6 @@ Thumbs.db
 .Trashes
 
 # Editor-related files
-# Ignore .atom for now
 .atom
 
 # Private files

@@ -1,3 +1,7 @@
+[advice]
+	# Don't give hints when running git status
+	statusHints = false
+
 [alias]
 	b = branch
 	branch-name = rev-parse --abbrev-ref HEAD
@@ -6,9 +10,9 @@
 	# Show the diff between the latest commit and the current state
 	d = !"git diff-index --quiet HEAD -- || clear; git --no-pager diff --patch-with-stat"
 	df = difftool
-	# Remove branches that have already been merged with master
+	# Remove branches that have already been merged with main or master
 	# a.k.a. ‘delete merged’
-	dm = "!git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
+	dm = "!git branch --merged | grep -v main | grep -v master | grep -v develop | grep -v '\\*' | xargs -n 1 git branch -d"
 	fa = fetch --all
 	fp = fetch --prune
 	# View abbreviated SHA, description, and history graph of the latest 20 commits
@@ -20,7 +24,7 @@
 	pr = "!git push -u origin $(git branch-name)"
 
 	# Show verbose output about branches, remotes, or tags
-	branches = branch -a
+	branches = branch -avv
 	remotes = remote -v
 	tags = tag -l
 
@@ -53,10 +57,6 @@
 	# via https://github.com/DanHerbert/dotfiles-old/blob/fa37918e8a151319dd3c7b0d43637fd53295ba78/.gitconfig#L45
 	yolo = !"git commit -am \"DEAL WITH IT\" && git push -f origin master"
 
-[advice]
-	# Don't give hints when running git status
-	statusHints = false
-
 [apply]
 	# Detect whitespace errors when applying a patch
 	whitespace = fix
@@ -79,15 +79,8 @@
 	added = yellow
 	changed = green
 	untracked = cyan
-
-[commit]
-	# https://help.github.com/articles/signing-commits-using-gpg/
-	gpgsign = true
-
 [core]
 	editor = atom-beta -w
-	excludesfile = ~/.gitignore
-
 	# Not a real config, but it should be
 	# via https://github.com/DanHerbert/dotfiles-old/blob/fa37918e8a151319dd3c7b0d43637fd53295ba78/.gitconfig#L9
 	hardcore-mode = true
@@ -105,6 +98,11 @@
     # Prevent showing files whose names contain non-ASCII symbols as unversioned.
 	# http://michael-kuehnel.de/git/2014/11/21/git-mac-osx-and-german-umlaute.html
 	precomposeunicode = false
+	#pager = diff-so-fancy | less --tabs=4 -RFX
+	pager = delta --plus-color="#012800" --minus-color="#340001" --theme='Monokai Extended Origin'
+
+[commit]
+	gpgsign = true
 
 [diff]
 	indentHeuristic = true
@@ -112,20 +110,32 @@
 	# Detect copies as well as renames
 	renames = copies
 
-[difftool "Kaleidoscope"]
-	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
-
 [difftool]
 	prompt = false
+
+[difftool "Kaleidoscope"]
+	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
 
 [fetch]
 	# Remove remote branches locally when they're deleted from origin
 	prune = true
 
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+
+[gpg]
+	program = gpg
+
+[init]
+	defaultBranch = main
+
 [merge]
-	tool = Kaleidoscope
 	# Include summaries of merged commits in newly created merge commit messages
 	log = true
+    tool = Kaleidoscope
 
 [mergetool]
 	keepBackup = false
@@ -133,19 +143,25 @@
 
 [mergetool "Kaleidoscope"]
 	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
-	trustExitCode = true
+	trustexitcode = true
+
+[pull]
+	rebase = false
 
 [push]
-	default = simple
+	default = current
 	followTags = true
+
+[rebase]
+	stat = true
 
 [rerere]
 	# "reuse recorded resolution" Tells git to record how conflicts are resolved when in a branch so you don't have to repeatedly resolve the same conflict when merging another branch
 	# See http://git-scm.com/blog/2010/03/08/rerere.html
 	enabled = true
 
-[rebase]
-	stat = true
+[status]
+	showStash = true
 
 [tig]
 	# Ensure tig always shows commits from other time zones in your computer's current time zone

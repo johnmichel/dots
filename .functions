@@ -238,6 +238,16 @@ atb() {
     fi
 }
 
+# `ci` with no arguments opens the current directory in Visual Studio Code Insiders Editor, otherwise
+# opens the given location
+ci() {
+    if [ $# -eq 0 ]; then
+        code-insiders .
+    else
+        code-insiders "$@"
+    fi
+}
+
 # `o` with no arguments opens the current directory, otherwise opens the given
 # location
 o() {
@@ -294,4 +304,50 @@ mp3() {
 # fetch the weather forecast
 wttr() {
     curl -4 http://wttr.in/"$1"
+}
+
+### spaceship functions
+# Check if command exists in $PATH
+# USAGE:
+#   _exists <command>
+_exists() {
+  command -v $1 > /dev/null 2>&1
+}
+
+# Draw prompt section (bold is used as default)
+# USAGE:
+#   _prompt_section <color> [prefix] <content> [suffix]
+SPACESHIP_OPENED=false # Internal variable for checking if prompt is opened
+_prompt_section() {
+  local color prefix content suffix
+  [[ -n $1 ]] && color="%F{$1}"  || color="%f"
+  [[ -n $2 ]] && prefix="$2"     || prefix=""
+  [[ -n $3 ]] && content="$3"    || content=""
+  [[ -n $4 ]] && suffix="$4"     || suffix=""
+
+  [[ -z $3 && -z $4 ]] && content=$2 prefix=''
+
+  echo -n "%{%B%}" # set bold
+  if [[ $SPACESHIP_OPENED == true ]] && [[ $SPACESHIP_PROMPT_PREFIXES_SHOW == true ]]; then
+    echo -n "$prefix"
+  fi
+  SPACESHIP_OPENED=true
+  echo -n "%{%b%}" # unset bold
+
+  echo -n "%{%B$color%}" # set color
+  echo -n "$content"     # section content
+  echo -n "%{%b%f%}"     # unset color
+
+  echo -n "%{%B%}" # reset bold, if it was diabled before
+  if [[ $SPACESHIP_PROMPT_SUFFIXES_SHOW == true ]]; then
+    echo -n "$suffix"
+  fi
+  echo -n "%{%b%}" # unset bold
+}
+
+# Paint text in color
+# USAGE:
+#   paint <color> [text...]
+paint() {
+  echo "$fg[$1]${@:2}$reset_color"
 }

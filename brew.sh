@@ -6,9 +6,14 @@ brew update
 # Upgrade any already-installed formulae
 brew upgrade
 
-# Install GNU core utilities (those that come with OS X are outdated)
+# Save Homebrew’s installed location.
+BREW_PREFIX=$(brew --prefix)
+
+# Install GNU core utilities (those that come with macOS are outdated).
 # Don’t forget to add `$(brew --prefix coreutils)/libexec/gnubin` to `$PATH`.
 brew install coreutils
+ln -s "${BREW_PREFIX}/bin/gsha256sum" "${BREW_PREFIX}/bin/sha256sum"
+
 # Install some other useful utilities like `sponge`
 brew install moreutils
 # Install GNU `find`, `locate`, `updatedb`, and `xargs`, g-prefixed
@@ -16,7 +21,7 @@ brew install moreutils
 brew install findutils
 # Install GNU `which`, g-prefixed then added to PATH unprefixed via ~/bin symlink
 brew install gnu-which
-# Install Bash 4
+# Install a modern version of Bash
 brew install bash
 brew tap homebrew/versions
 # This needs to be added to your bash profile after installing
@@ -31,18 +36,13 @@ fi;
 # Install wget with IRI support
 brew install wget --enable-iri
 
-# Install RingoJS and Narwhal
-# Note that the order in which these are installed is important; see http://git.io/brew-narwhal-ringo.
-brew install ringojs
-brew install narwhal
-
 # Install more recent versions of some OS X tools
 brew install vim --override-system-vi
-brew install homebrew/dupes/grep
-# skip openssh due to https://git.io/vyKaC
-# brew install homebrew/dupes/openssh
-brew install homebrew/dupes/screen
-brew install homebrew/php/php56 --with-gmp
+brew install grep
+brew install openssh
+brew install screen
+brew install php
+brew install gmp
 
 # Install font tools.
 brew tap bramstein/webfonttools
@@ -79,55 +79,76 @@ brew install xz
 # Install other useful binaries
 brew install ack
 brew install apm-bash-completion
+brew install asciinema
+brew install autojump
+brew install bandcamp-dl
+brew install bat
 brew install brightness
 brew install curl --with-c-ares --with-libmetalink --with-gssapi --with-libssh2
 brew install darkhttpd
 brew install dark-mode
+brew install detox
 brew install diff-so-fancy
 brew install dos2unix
+brew install ebook-tools
 brew install enca
 brew install exiftool
 brew install faac
 brew install ffmpeg --with-tools --with-fdk-aac --with-openssl --with-libvpx
 brew install fish
 brew install fzf
-brew install gifsicle
 brew install gawk
+brew install gifsicle
 brew install git --with-persistent-https --with-pcre --with-brewed-openssl --with-gettext --with-brewed-curl
 brew install git-annex
+brew install git-delta
 brew install git-extras
 brew install git-lfs
 brew install git-open
+brew install git-recent
+brew install gnu-units
+brew install gnupg
 brew install gti
 brew install harfbuzz
+brew install highlight
 brew install hub
 brew install imagemagick --with-webp
 brew install ios-webkit-debug-proxy
 brew install lame
 brew install less
 brew install lynx
+brew install mrboom
 brew install nginx
 brew install node --without-npm
 brew install open-completion
 brew install openssl
 brew install p7zip
+brew install patchutils
 brew install pigz
+brew install pinentry-mac
+brew install prettyping
 brew install pv
 brew install rename
 brew install rhino
+brew install rlwrap
 brew install s3cmd
+brew install shellcheck
 brew install speedtest_cli
 brew install ssh-copy-id
 brew install sshfs
 brew install testssl
 brew install tig --with-docs
 brew install tidy-html5
+brew install tldr
 brew install tree
 brew install ucspi-tcp
+brew install unar
+brew install vbindiff
 brew install webkit2png
-brew install zopfli
 brew install wifi-password
+brew install wtf
 brew install youtube-dl
+brew install zopfli
 
 # Remove outdated versions from the cellar
 brew cleanup

@@ -5,7 +5,6 @@
 if [ -d "/usr/local/bin" ]; then
 	# Move /usr/local/bin to the front of the PATH so brew packages take priority over system packages
 	export PATH=$(echo "$PATH" | sed 's|:/usr/local/bin:|:|g')
-	export PATH="/usr/local/bin:$PATH"
 fi
 
 pathLocations=( "$HOME/.node/bin" "$HOME/bin" )

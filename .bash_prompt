@@ -25,6 +25,73 @@ parse_git_commit() {
     fi
 }
 
+### Spaceship
+
+# PACKAGE
+# Show current package version
+spaceship_package() {
+  [[ $SPACESHIP_PACKAGE_SHOW == false ]] && return
+
+  # Show package version only when repository is a package
+  # @todo: add more package managers
+  [[ -f package.json ]] || return
+
+  _exists npm || return
+
+  # Grep and cut out package version
+  # Grep -E does not support \d for digits shortcut, should use [:digit:] or [0-9] instead
+  local package_version=$(grep -E '"version": "v?([0-9]+\.){1,}' package.json | cut -d\" -f4 2> /dev/null)
+
+  # Handle version not found
+  if [ ! "$package_version" ]; then
+    package_version=" ⚠"
+  else
+    package_version=" v${package_version}"
+  fi
+  echo "${red} ${SPACESHIP_PACKAGE_PREFIX}${SPACESHIP_PACKAGE_SYMBOL}${package_version}${reset}"
+
+  # _prompt_section \
+    # "${SPACESHIP_PACKAGE_COLOR}" \
+    # "$SPACESHIP_PACKAGE_PREFIX" \
+    # "${SPACESHIP_PACKAGE_SYMBOL}${package_version}" \
+    # "$SPACESHIP_PACKAGE_SUFFIX"
+}
+
+# NODE
+# Show current version of node, exception system.
+spaceship_node() {
+  [[ $SPACESHIP_NODE_SHOW == false ]] && return
+
+  # Show NODE status only for JS-specific folders
+  # [[ -f package.json || -d node_modules || -n *.js ]] || return
+  [[ -f package.json || -d node_modules ]] || return
+
+
+  local node_version
+
+  if _exists nvm; then
+    node_version=$(nvm current 2>/dev/null)
+    [[ $node_version == "system" || $node_version == "node" ]] && return
+  elif _exists nodenv; then
+    node_version=$(nodenv version-name)
+    [[ $node_version == "system" || $node_version == "node" ]] && return
+  elif _exists node; then
+    node_version=$(node -v 2>/dev/null)
+    [[ $node_version == $SPACESHIP_NODE_DEFAULT_VERSION ]] && return
+  else
+    return
+  fi
+
+
+  echo "${green} ${SPACESHIP_NODE_PREFIX}${SPACESHIP_NODE_SYMBOL}${node_version}${reset}"
+
+  # _prompt_section \
+  #   "$SPACESHIP_NODE_COLOR" \
+  #   "$SPACESHIP_NODE_PREFIX" \
+  #   "${SPACESHIP_NODE_SYMBOL}${node_version}" \
+  #   "$SPACESHIP_NODE_SUFFIX"
+}
+
 tput sgr0; # reset colors
 bold=$(tput bold);
 reset=$(tput sgr0);
@@ -42,9 +109,9 @@ yellow=$(tput setaf 221); #done.
 
 # Highlight the user name when logged in as root.
 if [[ "${USER}" == "root" ]]; then
-	userStyle="${red}";
+	userStyle="${bold}${red}";
 else
-	userStyle="${orange}";
+	userStyle="${bold}${green}";
 fi;
 
-export PS1="${orange}\t${reset} \h:\w \$(parse_git_branch)\$(parse_git_commit)\$(git_dirty_stash) \u\n$ "
+export PS1="${orange}\t${reset} ${userStyle}\u${reset}@${cyan}\h${reset} \w \$(parse_git_branch)\$(parse_git_commit)\$(git_dirty_stash)\$(spaceship_package)\$(spaceship_node) \n$ "
