@@ -23,7 +23,6 @@ brew install findutils
 brew install gnu-which
 # Install a modern version of Bash
 brew install bash
-brew tap homebrew/versions
 # This needs to be added to your bash profile after installing
 brew install bash-completion2
 
@@ -34,10 +33,10 @@ if ! fgrep -q '/usr/local/bin/bash' /etc/shells; then
 fi;
 
 # Install wget with IRI support
-brew install wget --enable-iri
+brew install wget
 
 # Install more recent versions of some OS X tools
-brew install vim --override-system-vi
+brew install vim
 brew install grep
 brew install openssh
 brew install screen
@@ -84,7 +83,7 @@ brew install autojump
 brew install bandcamp-dl
 brew install bat
 brew install brightness
-brew install curl --with-c-ares --with-libmetalink --with-gssapi --with-libssh2
+brew install curl
 brew install darkhttpd
 brew install dark-mode
 brew install detox
@@ -94,12 +93,12 @@ brew install ebook-tools
 brew install enca
 brew install exiftool
 brew install faac
-brew install ffmpeg --with-tools --with-fdk-aac --with-openssl --with-libvpx
+brew install ffmpeg
 brew install fish
 brew install fzf
 brew install gawk
 brew install gifsicle
-brew install git --with-persistent-https --with-pcre --with-brewed-openssl --with-gettext --with-brewed-curl
+brew install git
 brew install git-annex
 brew install git-delta
 brew install git-extras
@@ -112,14 +111,14 @@ brew install gti
 brew install harfbuzz
 brew install highlight
 brew install hub
-brew install imagemagick --with-webp
+brew install imagemagick
 brew install ios-webkit-debug-proxy
 brew install lame
 brew install less
 brew install lynx
 brew install mrboom
 brew install nginx
-brew install node --without-npm
+brew install node
 brew install open-completion
 brew install openssl
 brew install p7zip
@@ -137,7 +136,7 @@ brew install speedtest_cli
 brew install ssh-copy-id
 brew install sshfs
 brew install testssl
-brew install tig --with-docs
+brew install tig
 brew install tidy-html5
 brew install tldr
 brew install tree
