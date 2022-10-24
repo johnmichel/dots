@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# https://betterdev.blog/minimal-safe-bash-script-template/
+set -Eeuo pipefail
+trap cleanup SIGINT SIGTERM ERR EXIT
+
 # Make sure we’re using the latest Homebrew
 brew update
 
@@ -24,7 +28,7 @@ brew install gnu-which
 # Install a modern version of Bash
 brew install bash
 # This needs to be added to your bash profile after installing
-brew install bash-completion2
+brew install bash-completion@2
 
 # Switch to using brew-installed bash as default shell
 if ! fgrep -q '/usr/local/bin/bash' /etc/shells; then
@@ -81,6 +85,7 @@ brew install apm-bash-completion
 brew install asciinema
 brew install autojump
 brew install bandcamp-dl
+brew install bandwhich
 brew install bat
 brew install brightness
 brew install curl
@@ -132,6 +137,8 @@ brew install rhino
 brew install rlwrap
 brew install s3cmd
 brew install shellcheck
+brew install slurm
+brew install smartmontools
 brew install speedtest_cli
 brew install ssh-copy-id
 brew install sshfs
@@ -148,6 +155,18 @@ brew install wifi-password
 brew install wtf
 brew install youtube-dl
 brew install zopfli
+
+# QuickLook Plugins
+brew install --cask qlmarkdown
+brew install --cask qlstephen
+
+# QuickLook Cleanup
+# https://github.com/whomwah/qlstephen/tree/3a33aba2b8e9e4c58fdfa03351126f4eaf3a1790#permissions-quarantine
+xattr -cr /Applications/QLMarkdown.app
+xattr -cr ~/Library/QuickLook/QLStephen.qlgenerator
+qlmanage -r
+qlmanage -r cache
+killall Finder
 
 # Remove outdated versions from the cellar
 brew cleanup
